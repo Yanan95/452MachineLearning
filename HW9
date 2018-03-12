@@ -1,8 +1,11 @@
 import argparse
+import pandas as pd
+import boto3
+import json
 from google.cloud import language
-from google.cloud.language import enums
-from google.cloud.language import types
 
+
+comprehend = boto3.client(service_name='comprehend')
 def print_result(annotations):
     score = annotations.document_sentiment.score
     magnitude = annotations.document_sentiment.magnitude
@@ -16,17 +19,14 @@ def print_result(annotations):
         score, magnitude))
     return 0
 
-def analyze(filename):
-    client = language.LanguageServiceClient()
 
-    with open(filename, 'r') as file:
-        content = file.read()
+def sentiment_analysis(file):
+    doc = open(file, "r")
+    output = doc.readlines()
+    whole_doc = ', '.join(map(str, output))
 
-    document = types.Document(
-        content=content,
-        type=enums.Document.Type.PLAIN_TEXT)
-    annotations = client.analyze_sentiment(document=document)
-    print_result(annotations)
+    print('DetectSentiment')
+    print(json.dumps(comprehend.detect_sentiment(Text=whole_doc, LanguageCode='en'), sort_keys=True, indent=4))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
